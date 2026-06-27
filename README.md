@@ -18,4 +18,4 @@ An interactive browser-based puzzle where you place 8 queens on a chessboard so 
 HTML | CSS | JavaScript
   
 ## LIVE DEMO
- https://raghavshikriwal.github.io/8-queens-puzzle-solver/
+ [Click here](https://raghavshikriwal.github.io/8-queens-puzzle-solver/)

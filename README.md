@@ -16,4 +16,6 @@ An interactive browser-based puzzle where you place 8 queens on a chessboard so 
 
 ## Tech Stack
 HTML | CSS | JavaScript
-
+  
+## LIVE DEMO
+ https://raghavshikriwal.github.io/8-queens-puzzle-solver/

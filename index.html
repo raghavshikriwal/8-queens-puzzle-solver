@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>8-Queens Puzzle Solver</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #1a1a2e; color: white; text-align: center; padding: 20px; }
+        h1 { margin-bottom: 10px; color: #e94560; }
+        .info { margin-bottom: 15px; font-size: 14px; color: #aaa; }
+        .controls { margin-bottom: 20px; }
+        button { background: #e94560; color: white; border: none; padding: 10px 20px; margin: 5px; border-radius: 5px; cursor: pointer; font-size: 14px; }
+        button:hover { background: #c73652; }
+        .board { display: inline-grid; grid-template-columns: repeat(8, 60px); gap: 2px; margin-bottom: 20px; }
+        .cell { width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; font-size: 28px; cursor: pointer; border-radius: 4px; }
+        .white { background: #f0d9b5; }
+        .black { background: #b58863; }
+        .queen { }
+        .conflict { background: #ff4444 !important; }
+        .hint-cell { background: #44ff44 !important; }
+        .solution-info { font-size: 16px; margin-bottom: 10px; color: #e94560; }
+        .nav-buttons { margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>8-Queens Puzzle Solver</h1>
+    <div class="info">Place 8 queens on the board so no two attack each other</div>
+    
+    <div class="controls">
+        <button onclick="showHint()">💡 Hint</button>
+        <button onclick="resetBoard()">🔄 Reset</button>
+        <button onclick="showSolution()">✨ Show Solution</button>
+        <button onclick="prevSolution()">⬅ Prev</button>
+        <button onclick="nextSolution()">Next ➡</button>
+    </div>
+
+    <div class="solution-info" id="solutionInfo">Place queens on the board!</div>
+    <div class="board" id="board"></div>
+    <div class="nav-buttons">
+        <span id="solutionCount"></span>
+    </div>
+
+    <script>
+        let queens = new Array(8).fill(-1);
+        let allSolutions = [];
+        let currentSolution = 0;
+
+        // Generate all 92 solutions
+        function solve(row, cols, diag1, diag2, solution) {
+            if (row === 8) {
+                allSolutions.push([...solution]);
+                return;
+            }
+            for (let col = 0; col < 8; col++) {
+                if (cols & (1 << col)) continue;
+                if (diag1 & (1 << (row - col + 7))) continue;
+                if (diag2 & (1 << (row + col))) continue;
+                solution[row] = col;
+                solve(row + 1, cols | (1 << col), diag1 | (1 << (row - col + 7)), diag2 | (1 << (row + col)), solution);
+            }
+        }
+        solve(0, 0, 0, 0, new Array(8).fill(-1));
+
+        function isConflict(row, col) {
+            for (let r = 0; r < 8; r++) {
+                if (r === row || queens[r] === -1) continue;
+                if (queens[r] === col) return true;
+                if (Math.abs(queens[r] - col) === Math.abs(r - row)) return true;
+            }
+            return false;
+        }
+
+        function renderBoard() {
+            const board = document.getElementById('board');
+            board.innerHTML = '';
+            let conflicts = false;
+            let queensPlaced = queens.filter(q => q !== -1).length;
+
+            for (let row = 0; row < 8; row++) {
+                for (let col = 0; col < 8; col++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell ' + ((row + col) % 2 === 0 ? 'white' : 'black');
+                    
+                    if (queens[row] === col) {
+                        const conflict = isConflict(row, col);
+                        if (conflict) { cell.classList.add('conflict'); conflicts = true; }
+                        cell.textContent = '♛';
+                    }
+                    
+                    cell.onclick = () => placeQueen(row, col);
+                    board.appendChild(cell);
+                }
+            }
+
+            const info = document.getElementById('solutionInfo');
+            if (conflicts) {
+                info.textContent = '⚠️ Conflict detected!';
+                info.style.color = '#ff4444';
+            } else if (queensPlaced === 8) {
+                info.textContent = '🎉 Solved! All 8 queens placed safely!';
+                info.style.color = '#44ff44';
+            } else {
+                info.textContent = `Queens placed: ${queensPlaced}/8`;
+                info.style.color = '#e94560';
+            }
+        }
+
+        function placeQueen(row, col) {
+            queens[row] = queens[row] === col ? -1 : col;
+            renderBoard();
+        }
+
+        function resetBoard() {
+            queens = new Array(8).fill(-1);
+            renderBoard();
+        }
+
+        function showSolution() {
+            const sol = allSolutions[currentSolution];
+            queens = [...sol];
+            document.getElementById('solutionCount').textContent = `Solution ${currentSolution + 1} of ${allSolutions.length}`;
+            renderBoard();
+        }
+
+        function nextSolution() {
+            currentSolution = (currentSolution + 1) % allSolutions.length;
+            showSolution();
+        }
+
+        function prevSolution() {
+            currentSolution = (currentSolution - 1 + allSolutions.length) % allSolutions.length;
+            showSolution();
+        }
+
+        function showHint() {
+            const sol = allSolutions[currentSolution];
+            const board = document.getElementById('board');
+            const cells = board.children;
+            
+            for (let row = 0; row < 8; row++) {
+                if (queens[row] === -1) {
+                    const hintCol = sol[row];
+                    cells[row * 8 + hintCol].classList.add('hint-cell');
+                    setTimeout(() => cells[row * 8 + hintCol].classList.remove('hint-cell'), 1000);
+                    break;
+                }
+            }
+        }
+
+        renderBoard();
+        document.getElementById('solutionCount').textContent = `Total Solutions: ${allSolutions.length}`;
+    </script>
+</body>
+</html>
